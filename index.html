@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Acceso - Sistema Conectado</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            padding: 25px 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .status-card {
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .loading {
+            background-color: #fff4e5;
+            color: #e67700;
+        }
+        
+        .authorized {
+            background-color: #d5f5e3;
+            color: #27ae60;
+            border: 2px solid #2ecc71;
+        }
+        
+        .unauthorized {
+            background-color: #fadbd8;
+            color: #c0392b;
+            border: 2px solid #e74c3c;
+        }
+        
+        .device-info {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .device-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .instructions {
+            background-color: #eaf2f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .admin-info {
+            background-color: #e8f4fc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 13px;
+        }
+        
+        .admin-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .success-badge {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Verificación de Acceso</h1>
+            <p>Conectado a Google Sheets - Verificación en tiempo real</p>
+        </div>
+        
+        <div class="content">
+            <div id="status" class="status-card loading">
+                Verificando dispositivo...
+            </div>
+            
+            <div class="device-info">
+                <h3>Información del Dispositivo</h3>
+                <div class="info-row">
+                    <span>ID del Dispositivo:</span>
+                    <span id="device-id">Calculando...</span>
+                </div>
+                <div class="info-row">
+                    <span>Navegador:</span>
+                    <span id="browser">Detectando...</span>
+                </div>
+                <div class="info-row">
+                    <span>Plataforma:</span>
+                    <span id="platform">Detectando...</span>
+                </div>
+            </div>
+            
+            <button id="retry-btn">Reintentar Verificación</button>
+            
+            <div class="instructions">
+                <h3>Instrucciones:</h3>
+                <ol>
+                    <li>Este sistema verifica si su dispositivo móvil tiene acceso autorizado</li>
+                    <li>El acceso se concede basado en el ID único de su dispositivo</li>
+                    <li>Si no tiene acceso, contacte al administrador para registrar su dispositivo</li>
+                    <li>El ID de su dispositivo se guarda localmente para futuras verificaciones</li>
+                </ol>
+            </div>
+            
+            <div class="admin-info">
+                <h3>Estado del Sistema <span class="success-badge" id="connection-status">Conectado</span></h3>
+                <p><strong>Backend:</strong> Google Apps Script</p>
+                <p><strong>Base de datos:</strong> Google Sheets</p>
+                <p><strong>Modo:</strong> Verificación en tiempo real</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Sistema de Verificación de Acceso | Conectado a Google Sheets</p>
+    </div>
+
+    <script>
+        // URL de tu Google Apps Script (ya configurada)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyC2bO6A6Q9EBVXFOLkRlV9eDxTuCIB1GXO1ssZ_RO9xe9Os5AsvURZMnK_RWpfYn0/exec';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('status');
+            const deviceIdSpan = document.getElementById('device-id');
+            const browserSpan = document.getElementById('browser');
+            const platformSpan = document.getElementById('platform');
+            const retryBtn = document.getElementById('retry-btn');
+            const connectionStatus = document.getElementById('connection-status');
+            
+            // Detectar información del navegador y plataforma
+            browserSpan.textContent = detectBrowser();
+            platformSpan.textContent = detectPlatform();
+            
+            // Función para generar un DeviceID único y persistente
+            async function generateDeviceId() {
+                // Intentamos obtener un ID existente de localStorage
+                let deviceId = localStorage.getItem('deviceId');
+                
+                // Si no existe, generamos uno nuevo
+                if (!deviceId) {
+                    try {
+                        // Creamos un ID único usando varias fuentes de información del dispositivo
+                        const userAgent = navigator.userAgent;
+                        const language = navigator.language;
+                        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        const hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
+                        const deviceMemory = navigator.deviceMemory || 'unknown';
+                        
+                        // Texto base para el hash
+                        const baseString = `${userAgent}${language}${timezone}${hardwareConcurrency}${deviceMemory}`;
+                        
+                        // Generamos un hash simple
+                        let hash = 0;
+                        for (let i = 0; i < baseString.length; i++) {
+                            const char = baseString.charCodeAt(i);
+                            hash = ((hash << 5) - hash) + char;
+                            hash = hash & hash; // Convertimos a entero de 32 bits
+                        }
+                        
+                        deviceId = 'device_' + Math.abs(hash).toString(16);
+                        localStorage.setItem('deviceId', deviceId);
+                    } catch (e) {
+                        // Fallback: si todo lo demás falla, usamos un UUID con Math.random
+                        deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('deviceId', deviceId);
+                    }
+                }
+                
+                return deviceId;
+            }
+
+            // Función para detectar el navegador
+            function detectBrowser() {
+                const userAgent = navigator.userAgent;
+                if (userAgent.includes('Chrome')) return 'Chrome';
+                if (userAgent.includes('Firefox')) return 'Firefox';
+                if (userAgent.includes('Safari')) return 'Safari';
+                if (userAgent.includes('Edge')) return 'Edge';
+                return 'Otro';
+            }
+            
+            // Función para detectar la plataforma
+            function detectPlatform() {
+                const userAgent = navigator.userAgent;
+                if (userAgent.includes('Android')) return 'Android';
+                if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS';
+                if (userAgent.includes('Windows')) return 'Windows';
+                if (userAgent.includes('Mac')) return 'Mac';
+                if (userAgent.includes('Linux')) return 'Linux';
+                return 'Desconocido';
+            }
+            
+            // Función para verificar el acceso contra Google Sheets
+            async function verifyAccess(deviceId) {
+                try {
+                    // Hacemos la petición a Google Apps Script
+                    const response = await fetch(`${SCRIPT_URL}?deviceId=${encodeURIComponent(deviceId)}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error en la respuesta: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Verificamos si hay un error en la respuesta
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    return result.authorized;
+                } catch (error) {
+                    console.error('Error en verifyAccess:', error);
+                    connectionStatus.textContent = 'Error de conexión';
+                    connectionStatus.style.backgroundColor = '#dc3545';
+                    throw error;
+                }
+            }
+            
+            // Función para verificar el acceso
+            async function checkAccess() {
+                statusDiv.className = 'status-card loading';
+                statusDiv.textContent = 'Conectando con Google Sheets...';
+                connectionStatus.textContent = 'Conectando...';
+                connectionStatus.style.backgroundColor = '#ffc107';
+                connectionStatus.style.color = '#000';
+                
+                try {
+                    const deviceId = await generateDeviceId();
+                    deviceIdSpan.textContent = deviceId;
+                    
+                    // Verificamos contra Google Sheets
+                    const isAuthorized = await verifyAccess(deviceId);
+                    
+                    // Mostramos el resultado
+                    if (isAuthorized) {
+                        statusDiv.className = 'status-card authorized';
+                        statusDiv.textContent = '✓ ACCESO AUTORIZADO. Bienvenido.';
+                        connectionStatus.textContent = 'Conectado';
+                        connectionStatus.style.backgroundColor = '#28a745';
+                    } else {
+                        statusDiv.className = 'status-card unauthorized';
+                        statusDiv.textContent = '✗ ACCESO NO AUTORIZADO. Contacte al administrador.';
+                        connectionStatus.textContent = 'Conectado';
+                        connectionStatus.style.backgroundColor = '#28a745';
+                    }
+                } catch (error) {
+                    console.error('Error en checkAccess:', error);
+                    statusDiv.className = 'status-card unauthorized';
+                    
+                    if (error.message.includes('configura la URL')) {
+                        statusDiv.textContent = 'Error: Sistema no configurado correctamente.';
+                    } else {
+                        statusDiv.textContent = 'Error de conexión. Por favor, intenta nuevamente.';
+                    }
+                }
+            }
+            
+            // Verificar acceso al cargar la página
+            checkAccess();
+            
+            // Configurar el botón de reintento
+            retryBtn.addEventListener('click', checkAccess);
+        });
+    </script>
+</body>
+</html>
